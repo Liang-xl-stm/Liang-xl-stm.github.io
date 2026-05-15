@@ -5,9 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>智能门锁管理平台 - OneNET IoT</title>
 
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- QRCode.js 库 -->
-    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js">
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
     <!-- Font Awesome 图标 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -813,9 +814,6 @@
                 <button class="btn btn-outline" onclick="switchView('registerView')">
                     <i class="fas fa-user-plus"></i> 创建新账号
                 </button>
-                <p style="text-align:center;margin-top:12px;font-size:11px;color:var(--text-light);">
-                    💡 演示账号：admin / admin123
-                </p>
             </div>
 
             <!-- ==================== 注册视图 ==================== -->
@@ -837,21 +835,19 @@
                         <label class="form-label">登录密码</label>
                         <div class="form-input-wrapper">
                             <i class="fas fa-key input-icon"></i>
-                            <input type="password" class="form-input" id="regPassword" placeholder="至少6位" required
-                            minlength="6">
+                            <input type="password" class="form-input" id="regPassword" placeholder="至少6位" required minlength="6">
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">🔐 开锁密码（6位数字）</label>
                         <div class="form-input-wrapper">
                             <i class="fas fa-shield-alt input-icon"></i>
-                            <input type="text" class="form-input" id="regUnlockPin" placeholder="6位数字开锁密码"
-                            required minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                            <input type="text" class="form-input" id="regUnlockPin" placeholder="6位数字开锁密码" required minlength="6" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                         </div>
                         <div class="form-error-msg" id="regPinError"></div>
                     </div>
                     <div class="form-group">
-                        <label class="form-label">🔗 OneNET 设备ID（可选，后续可配置）</label>
+                        <label class="form-label">🔗 OneNET 设备ID（可选）</label>
                         <div class="form-input-wrapper">
                             <i class="fas fa-microchip input-icon"></i>
                             <input type="text" class="form-input" id="regDeviceId" placeholder="OneNET设备ID（可选）">
@@ -969,8 +965,7 @@
                         <label class="form-label">🔐 修改开锁密码（6位数字）</label>
                         <div class="form-input-wrapper">
                             <i class="fas fa-shield-alt input-icon"></i>
-                            <input type="text" class="form-input" id="setUnlockPin" placeholder="留空则不修改"
-                            maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
+                            <input type="text" class="form-input" id="setUnlockPin" placeholder="留空则不修改" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
                         </div>
                     </div>
                     <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
@@ -978,8 +973,7 @@
                         <span class="spinner"></span>
                     </button>
                 </form>
-                <button class="btn btn-outline" style="margin-top:10px;" id="testConnectionBtn"
-                onclick="testOneNETConnection()">
+                <button class="btn btn-outline" style="margin-top:10px;" id="testConnectionBtn" onclick="testOneNETConnection()">
                     <i class="fas fa-plug"></i> 测试OneNET连接
                 </button>
                 <div id="testResult" style="margin-top:8px;font-size:12px;text-align:center;"></div>
@@ -1034,857 +1028,521 @@
     </div><!-- .app-container -->
 
     <script>
-        (function() {
-            // ==================== 数据存储 ====================
-            const STORAGE_KEY = 'smartlock_users';
-            const LOGS_KEY = 'smartlock_logs';
-            const SESSION_KEY = 'smartlock_session';
+        // ==================== Supabase 初始化 ====================
+        const SUPABASE_URL = 'https://khngdzstzwyeamehmmqt.supabase.co'; // 基础域名
+        const SUPABASE_ANON_KEY = 'sb_publishable_am1XRk1u-C6Z5jXckYfr1w_ILu1-McA';
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            // 初始化默认演示账号
-            function initDefaultData() {
-                let users = getUsers();
-                if (users.length === 0) {
-                    const defaultUser = {
-                        id: generateUID(),
-                        username: 'admin',
-                        password: hashPassword('admin123'),
-                        unlockPin: '888888', // 6位数字开锁密码
-                        deviceId: '',
-                        productId: '',
-                        apiKey: '',
-                        createdAt: new Date().toISOString(),
-                    };
-                    users.push(defaultUser);
-                    saveUsers(users);
-                    // 添加一条初始化日志
-                    addLog(defaultUser.id, '系统初始化完成', 'info');
-                }
+        // ==================== Toast ====================
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        }
+
+        // ==================== 视图切换 ====================
+        function switchView(viewId) {
+            document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById(viewId);
+            if (target) target.classList.add('active');
+            document.getElementById('appContainer').scrollIntoView({ behavior: 'smooth' });
+
+            if (viewId === 'dashboardView') initDashboard();
+            else if (viewId === 'settingsView') initSettings();
+            else if (viewId === 'verifyView') initVerifyView();
+        }
+
+        // ==================== 获取当前用户的完整资料 ====================
+        async function getCurrentProfile() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return null;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !data) return null;
+            return {
+                id: user.id,
+                username: user.email.split('@')[0],
+                unlockPin: data.unlock_pin,
+                deviceId: data.device_id,
+                productId: data.product_id,
+                apiKey: data.api_key,
+                createdAt: data.created_at,
+            };
+        }
+
+        // ==================== 日志（依然存在 localStorage） ====================
+        function addLog(uid, message, status) {
+            try {
+                const data = localStorage.getItem('smartlock_logs');
+                const allLogs = data ? JSON.parse(data) : [];
+                allLogs.push({ uid, message, status, time: new Date().toISOString() });
+                localStorage.setItem('smartlock_logs', JSON.stringify(allLogs.slice(-500)));
+            } catch (e) {}
+        }
+
+        function getLogs(uid) {
+            try {
+                const data = localStorage.getItem('smartlock_logs');
+                const allLogs = data ? JSON.parse(data) : [];
+                return allLogs.filter(l => l.uid === uid).slice(-20).reverse();
+            } catch (e) {
+                return [];
+            }
+        }
+
+        function renderLogs(uid) {
+            const logList = document.getElementById('logList');
+            const logs = getLogs(uid);
+            if (logs.length === 0) {
+                logList.innerHTML = '<li style="color:var(--text-light);text-align:center;">暂无记录</li>';
+                return;
+            }
+            logList.innerHTML = logs.map(l => {
+                const time = new Date(l.time).toLocaleString('zh-CN', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+                const icon = l.status === 'success' ? '✅' : (l.status === 'fail' ? '❌' : 'ℹ️');
+                return `<li><span>${icon} ${l.message}</span><span class="log-time">${time}</span></li>`;
+            }).join('');
+        }
+
+        // ==================== 登录 ====================
+        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorEl = document.getElementById('loginError');
+            const btn = document.getElementById('loginBtn');
+
+            errorEl.classList.remove('show');
+            if (!username || !password) {
+                errorEl.textContent = '请填写用户名和密码';
+                errorEl.classList.add('show');
+                return;
             }
 
-            function generateUID() {
-                return 'USR-' + Date.now().toString(36).toUpperCase() + '-' +
-                    Math.random().toString(36).substring(2, 8).toUpperCase();
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const email = `${username}@smartlock.local`;
+            const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+
+            if (error) {
+                errorEl.textContent = '用户名或密码错误';
+                errorEl.classList.add('show');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
             }
 
-            function hashPassword(pwd) {
-                // 模拟哈希（生产环境请使用 bcrypt/argon2）
-                let hash = 0;
-                const salt = 'SmartLockSalt2024';
-                const str = pwd + salt;
-                for (let i = 0; i < str.length; i++) {
-                    const char = str.charCodeAt(i);
-                    hash = ((hash << 5) - hash) + char;
-                    hash |= 0;
-                }
-                return 'HASH_' + Math.abs(hash).toString(36) + '_' + btoa(pwd).substring(0, 8);
+            addLog(data.user.id, '用户登录成功', 'info');
+            showToast('✅ 登录成功！', 'success');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            document.getElementById('loginForm').reset();
+            switchView('dashboardView');
+        });
+
+        // ==================== 注册 ====================
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const unlockPin = document.getElementById('regUnlockPin').value.trim();
+            const deviceId = document.getElementById('regDeviceId').value.trim();
+            const apiKey = document.getElementById('regApiKey').value.trim();
+            const pinErrorEl = document.getElementById('regPinError');
+            const btn = document.getElementById('registerBtn');
+
+            pinErrorEl.classList.remove('show');
+            if (username.length < 2) { showToast('用户名至少2个字符', 'error'); return; }
+            if (password.length < 6) { showToast('登录密码至少6位', 'error'); return; }
+            if (!/^\d{6}$/.test(unlockPin)) {
+                pinErrorEl.textContent = '开锁密码必须为6位纯数字';
+                pinErrorEl.classList.add('show');
+                return;
             }
 
-            function verifyPassword(input, storedHash) {
-                return hashPassword(input) === storedHash;
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const email = `${username}@smartlock.local`;
+            const { data, error } = await supabase.auth.signUp({ email, password });
+
+            if (error) {
+                showToast('注册失败: ' + error.message, 'error');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
             }
 
-            function getUsers() {
-                try {
-                    const data = localStorage.getItem(STORAGE_KEY);
-                    return data ? JSON.parse(data) : [];
-                } catch (e) {
-                    return [];
-                }
+            const user = data.user;
+            if (!user) {
+                showToast('注册失败，请重试', 'error');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
             }
 
-            function saveUsers(users) {
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(users));
-            }
-
-            function getUserById(uid) {
-                return getUsers().find(u => u.id === uid);
-            }
-
-            function getUserByUsername(username) {
-                return getUsers().find(u => u.username.toLowerCase() === username.toLowerCase());
-            }
-
-            function updateUser(uid, updates) {
-                const users = getUsers();
-                const idx = users.findIndex(u => u.id === uid);
-                if (idx >= 0) {
-                    users[idx] = { ...users[idx], ...updates };
-                    saveUsers(users);
-                    return users[idx];
-                }
-                return null;
-            }
-
-            function getLogs(uid) {
-                try {
-                    const data = localStorage.getItem(LOGS_KEY);
-                    const allLogs = data ? JSON.parse(data) : [];
-                    return allLogs.filter(l => l.uid === uid).slice(-20).reverse();
-                } catch (e) {
-                    return [];
-                }
-            }
-
-            function addLog(uid, message, status) {
-                try {
-                    const data = localStorage.getItem(LOGS_KEY);
-                    const allLogs = data ? JSON.parse(data) : [];
-                    allLogs.push({
-                        uid,
-                        message,
-                        status,
-                        time: new Date().toISOString(),
-                    });
-                    // 只保留最近500条
-                    const trimmed = allLogs.slice(-500);
-                    localStorage.setItem(LOGS_KEY, JSON.stringify(trimmed));
-                } catch (e) {
-                    // 静默处理
-                }
-            }
-
-            function getSession() {
-                try {
-                    const data = sessionStorage.getItem(SESSION_KEY);
-                    return data ? JSON.parse(data) : null;
-                } catch (e) {
-                    return null;
-                }
-            }
-
-            function setSession(user) {
-                sessionStorage.setItem(SESSION_KEY, JSON.stringify({
+            // 插入 profiles 表
+            const { error: profileError } = await supabase
+                .from('profiles')
+                .insert([{
                     id: user.id,
-                    username: user.username,
-                    loginTime: new Date().toISOString(),
-                }));
+                    unlock_pin: unlockPin,
+                    device_id: deviceId || '',
+                    product_id: '',
+                    api_key: apiKey || '',
+                }]);
+
+            if (profileError) {
+                showToast('用户信息保存失败: ' + profileError.message, 'error');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
             }
 
-            function clearSession() {
-                sessionStorage.removeItem(SESSION_KEY);
-            }
+            addLog(user.id, '账号注册成功', 'info');
+            showToast('🎉 注册成功！请登录', 'success');
+            btn.classList.remove('loading');
+            btn.disabled = false;
+            document.getElementById('registerForm').reset();
+            switchView('loginView');
+        });
 
-            // ==================== Toast ====================
-            function showToast(message, type = 'info') {
-                const container = document.getElementById('toastContainer');
-                const toast = document.createElement('div');
-                toast.className = `toast toast-${type}`;
-                toast.textContent = message;
-                container.appendChild(toast);
-                setTimeout(() => {
-                    if (toast.parentNode) {
-                        toast.remove();
-                    }
-                }, 3000);
-            }
-
-            // ==================== 视图切换 ====================
-            function switchView(viewId) {
-                document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-                const target = document.getElementById(viewId);
-                if (target) {
-                    target.classList.add('active');
-                }
-                // 滚动到顶部
-                document.getElementById('appContainer').scrollIntoView({ behavior: 'smooth' });
-
-                // 根据视图执行初始化
-                if (viewId === 'dashboardView') {
-                    initDashboard();
-                } else if (viewId === 'settingsView') {
-                    initSettings();
-                } else if (viewId === 'verifyView') {
-                    initVerifyView();
-                }
-            }
-
-            // ==================== 登录处理 ====================
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('loginUsername').value.trim();
-                const password = document.getElementById('loginPassword').value;
-                const errorEl = document.getElementById('loginError');
-                const btn = document.getElementById('loginBtn');
-
-                errorEl.classList.remove('show');
-                if (!username || !password) {
-                    errorEl.textContent = '请填写用户名和密码';
-                    errorEl.classList.add('show');
-                    return;
-                }
-
-                btn.classList.add('loading');
-                btn.disabled = true;
-
-                // 模拟网络延迟
-                setTimeout(() => {
-                    const user = getUserByUsername(username);
-                    if (!user) {
-                        errorEl.textContent = '用户不存在，请先注册';
-                        errorEl.classList.add('show');
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
-                        return;
-                    }
-                    if (!verifyPassword(password, user.password)) {
-                        errorEl.textContent = '密码错误，请重试';
-                        errorEl.classList.add('show');
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
-                        return;
-                    }
-                    // 登录成功
-                    setSession(user);
-                    addLog(user.id, '用户登录成功', 'info');
-                    showToast('✅ 登录成功，欢迎回来！', 'success');
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-                    document.getElementById('loginForm').reset();
-                    switchView('dashboardView');
-                }, 600);
-            });
-
-            // ==================== 注册处理 ====================
-            document.getElementById('registerForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const username = document.getElementById('regUsername').value.trim();
-                const password = document.getElementById('regPassword').value;
-                const unlockPin = document.getElementById('regUnlockPin').value.trim();
-                const deviceId = document.getElementById('regDeviceId').value.trim();
-                const apiKey = document.getElementById('regApiKey').value.trim();
-                const pinErrorEl = document.getElementById('regPinError');
-                const btn = document.getElementById('registerBtn');
-
-                pinErrorEl.classList.remove('show');
-
-                // 验证
-                if (username.length < 2) {
-                    showToast('用户名至少2个字符', 'error');
-                    return;
-                }
-                if (password.length < 6) {
-                    showToast('登录密码至少6位', 'error');
-                    return;
-                }
-                if (!/^\d{6}$/.test(unlockPin)) {
-                    pinErrorEl.textContent = '开锁密码必须为6位纯数字';
-                    pinErrorEl.classList.add('show');
-                    return;
-                }
-                if (getUserByUsername(username)) {
-                    showToast('该用户名已被注册', 'error');
-                    return;
-                }
-
-                btn.classList.add('loading');
-                btn.disabled = true;
-
-                setTimeout(() => {
-                    const newUser = {
-                        id: generateUID(),
-                        username: username,
-                        password: hashPassword(password),
-                        unlockPin: unlockPin,
-                        deviceId: deviceId || '',
-                        productId: '',
-                        apiKey: apiKey || '',
-                        createdAt: new Date().toISOString(),
-                    };
-                    const users = getUsers();
-                    users.push(newUser);
-                    saveUsers(users);
-                    addLog(newUser.id, '账号注册成功', 'info');
-                    showToast('🎉 注册成功！请登录', 'success');
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-                    document.getElementById('registerForm').reset();
-                    switchView('loginView');
-                }, 500);
-            });
-
-            // ==================== 仪表盘初始化 ====================
-            function initDashboard() {
-                const session = getSession();
-                if (!session) {
-                    switchView('loginView');
-                    showToast('请先登录', 'info');
-                    return;
-                }
-                const user = getUserById(session.id);
-                if (!user) {
-                    clearSession();
-                    switchView('loginView');
-                    showToast('会话过期，请重新登录', 'error');
-                    return;
-                }
-
-                document.getElementById('dashWelcome').textContent = `欢迎，${user.username}`;
-                document.getElementById('qrUidDisplay').textContent = user.id;
-
-                // 生成二维码
-                const qrWrapper = document.getElementById('qrCodeWrapper');
-                qrWrapper.innerHTML = '';
-                const verifyUrl = window.location.origin + window.location.pathname + '?verify=' + user.id;
-                try {
-                    new QRCode(qrWrapper, {
-                        text: verifyUrl,
-                        width: 180,
-                        height: 180,
-                        colorDark: '#1f2937',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M,
-                    });
-                } catch (err) {
-                    // 备用：如果QRCode库加载失败
-                    qrWrapper.innerHTML =
-                        '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;border-radius:8px;color:#9ca3af;font-size:12px;">二维码加载失败<br>请检查网络</div>';
-                }
-
-                // 设备状态
-                updateDeviceStatusUI(user);
-
-                // 日志
-                renderLogs(user.id);
-            }
-
-            function updateDeviceStatusUI(user) {
-                const badge = document.getElementById('deviceBadge');
-                const infoText = document.getElementById('deviceInfoText');
-                if (user.deviceId && user.apiKey) {
-                    badge.innerHTML = '<span class="badge-dot green"></span> 已绑定';
-                    badge.className = 'badge badge-success';
-                    infoText.textContent = `设备ID: ${user.deviceId} | 在线`;
-                } else if (user.deviceId && !user.apiKey) {
-                    badge.innerHTML = '<span class="badge-dot orange"></span> 配置不完整';
-                    badge.className = 'badge badge-warning';
-                    infoText.textContent = '请完善API密钥配置';
-                } else {
-                    badge.innerHTML = '<span class="badge-dot orange"></span> 未绑定';
-                    badge.className = 'badge badge-warning';
-                    infoText.textContent = '请在设置中绑定OneNET设备';
-                }
-            }
-
-            function renderLogs(uid) {
-                const logList = document.getElementById('logList');
-                const logs = getLogs(uid);
-                if (logs.length === 0) {
-                    logList.innerHTML = '<li style="color:var(--text-light);text-align:center;">暂无记录</li>';
-                    return;
-                }
-                logList.innerHTML = logs.map(l => {
-                    const time = new Date(l.time).toLocaleString('zh-CN', {
-                        month: 'short',
-                        day: 'numeric',
-                        hour: '2-digit',
-                        minute: '2-digit',
-                    });
-                    const statusClass = l.status === 'success' ? 'success' : (l.status === 'fail' ?
-                        'fail' : '');
-                    const icon = l.status === 'success' ? '✅' : (l.status === 'fail' ? '❌' : 'ℹ️');
-                    return `
-                            <li>
-                                <span>${icon} ${l.message}</span>
-                                <span class="log-time">${time}</span>
-                            </li>`;
-                }).join('');
-            }
-
-            function simulateScan() {
-                const session = getSession();
-                if (!session) return;
-                const user = getUserById(session.id);
-                if (!user) return;
-                // 跳转到验证页面
-                window.location.href = window.location.pathname + '?verify=' + user.id;
-            }
-
-            function handleLogout() {
-                const session = getSession();
-                if (session) {
-                    addLog(session.id, '用户登出', 'info');
-                }
-                clearSession();
+        // ==================== 仪表盘初始化 ====================
+        async function initDashboard() {
+            const profile = await getCurrentProfile();
+            if (!profile) {
                 switchView('loginView');
-                showToast('已安全退出', 'info');
+                showToast('请先登录', 'info');
+                return;
             }
 
-            // ==================== 设置页面 ====================
-            function initSettings() {
-                const session = getSession();
-                if (!session) return;
-                const user = getUserById(session.id);
-                if (!user) return;
-                document.getElementById('setProductId').value = user.productId || '';
-                document.getElementById('setDeviceId').value = user.deviceId || '';
-                document.getElementById('setApiKey').value = user.apiKey || '';
+            document.getElementById('dashWelcome').textContent = `欢迎，${profile.username}`;
+            document.getElementById('qrUidDisplay').textContent = profile.id;
+
+            // 生成二维码（包含用户 UUID）
+            const qrWrapper = document.getElementById('qrCodeWrapper');
+            qrWrapper.innerHTML = '';
+            const verifyUrl = window.location.origin + window.location.pathname + '?verify=' + profile.id;
+            try {
+                new QRCode(qrWrapper, {
+                    text: verifyUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark: '#1f2937',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.M,
+                });
+            } catch (err) {
+                qrWrapper.innerHTML = '<div style="width:180px;height:180px;display:flex;align-items:center;justify-content:center;background:#f3f4f6;border-radius:8px;color:#9ca3af;font-size:12px;">二维码加载失败</div>';
+            }
+
+            updateDeviceStatusUI(profile);
+            renderLogs(profile.id);
+        }
+
+        function updateDeviceStatusUI(profile) {
+            const badge = document.getElementById('deviceBadge');
+            const infoText = document.getElementById('deviceInfoText');
+            if (profile.deviceId && profile.apiKey) {
+                badge.innerHTML = '<span class="badge-dot green"></span> 已绑定';
+                badge.className = 'badge badge-success';
+                infoText.textContent = `设备ID: ${profile.deviceId} | 在线`;
+            } else if (profile.deviceId && !profile.apiKey) {
+                badge.innerHTML = '<span class="badge-dot orange"></span> 配置不完整';
+                badge.className = 'badge badge-warning';
+                infoText.textContent = '请完善API密钥配置';
+            } else {
+                badge.innerHTML = '<span class="badge-dot orange"></span> 未绑定';
+                badge.className = 'badge badge-warning';
+                infoText.textContent = '请在设置中绑定OneNET设备';
+            }
+        }
+
+        function simulateScan() {
+            const qrUid = document.getElementById('qrUidDisplay').textContent;
+            if (qrUid) {
+                window.location.href = window.location.pathname + '?verify=' + qrUid;
+            }
+        }
+
+        async function handleLogout() {
+            await supabase.auth.signOut();
+            switchView('loginView');
+            showToast('已安全退出', 'info');
+        }
+
+        // ==================== 设置页面 ====================
+        async function initSettings() {
+            const profile = await getCurrentProfile();
+            if (!profile) return;
+            document.getElementById('setProductId').value = profile.productId || '';
+            document.getElementById('setDeviceId').value = profile.deviceId || '';
+            document.getElementById('setApiKey').value = profile.apiKey || '';
+            document.getElementById('setUnlockPin').value = '';
+            document.getElementById('testResult').innerHTML = '';
+        }
+
+        document.getElementById('settingsForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('saveSettingsBtn');
+            const productId = document.getElementById('setProductId').value.trim();
+            const deviceId = document.getElementById('setDeviceId').value.trim();
+            const apiKey = document.getElementById('setApiKey').value.trim();
+            const unlockPin = document.getElementById('setUnlockPin').value.trim();
+
+            if (unlockPin && !/^\d{6}$/.test(unlockPin)) {
+                showToast('开锁密码必须为6位纯数字', 'error');
+                return;
+            }
+
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return showToast('未登录', 'error');
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            const updates = { product_id: productId, device_id: deviceId, api_key: apiKey };
+            if (unlockPin) updates.unlock_pin = unlockPin;
+
+            const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
+
+            if (error) {
+                showToast('保存失败: ' + error.message, 'error');
+            } else {
+                showToast('✅ 设置已保存', 'success');
                 document.getElementById('setUnlockPin').value = '';
-                document.getElementById('testResult').innerHTML = '';
+            }
+            btn.classList.remove('loading');
+            btn.disabled = false;
+        });
+
+        // ==================== OneNET 连接测试（模拟） ====================
+        function testOneNETConnection() {
+            const resultEl = document.getElementById('testResult');
+            const btn = document.getElementById('testConnectionBtn');
+            const deviceId = document.getElementById('setDeviceId').value.trim();
+            const apiKey = document.getElementById('setApiKey').value.trim();
+
+            if (!deviceId || !apiKey) {
+                resultEl.innerHTML = '<span style="color:#e54545;">❌ 请先填写设备ID和API密钥</span>';
+                return;
             }
 
-            document.getElementById('settingsForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                const session = getSession();
-                if (!session) return;
-                const btn = document.getElementById('saveSettingsBtn');
-                const productId = document.getElementById('setProductId').value.trim();
-                const deviceId = document.getElementById('setDeviceId').value.trim();
-                const apiKey = document.getElementById('setApiKey').value.trim();
-                const unlockPin = document.getElementById('setUnlockPin').value.trim();
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner" style="display:inline-block;width:16px;height:16px;"></span> 测试中...';
+            resultEl.innerHTML = '<span style="color:#f5a623;">⏳ 正在连接OneNET平台...</span>';
 
-                if (unlockPin && !/^\d{6}$/.test(unlockPin)) {
-                    showToast('开锁密码必须为6位纯数字', 'error');
-                    return;
+            setTimeout(() => {
+                if (Math.random() < 0.85) {
+                    resultEl.innerHTML = '<span style="color:#0d9e6c;">✅ 连接成功！设备在线</span>';
+                    showToast('OneNET连接测试成功', 'success');
+                } else {
+                    resultEl.innerHTML = '<span style="color:#e54545;">❌ 连接失败：设备离线或超时</span>';
+                    showToast('连接测试失败', 'error');
                 }
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-plug"></i> 测试OneNET连接';
+            }, 1500);
+        }
 
-                btn.classList.add('loading');
-                btn.disabled = true;
+        // ==================== 验证与开锁 ====================
+        function initVerifyView() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const verifyUid = urlParams.get('verify');
+            const view = document.getElementById('verifyView');
+            view.dataset.verifyUid = verifyUid || '';
 
-                setTimeout(() => {
-                    const updates = { productId, deviceId, apiKey };
-                    if (unlockPin) {
-                        updates.unlockPin = unlockPin;
-                    }
-                    const updatedUser = updateUser(session.id, updates);
-                    addLog(session.id, '设备设置已更新', 'info');
-                    showToast('✅ 设置已保存', 'success');
-                    btn.classList.remove('loading');
-                    btn.disabled = false;
-                    document.getElementById('setUnlockPin').value = '';
-                    if (updatedUser) {
-                        updateDeviceStatusUI(updatedUser);
-                    }
-                }, 500);
+            if (!verifyUid) {
+                document.getElementById('verifyTargetUser').textContent = '无效的二维码链接';
+                document.getElementById('unlockStatusText').textContent = '缺少用户标识';
+                return;
+            }
+
+            // 加载用户名称（从 Supabase profiles + auth 联表？暂时只显示 ID）
+            document.getElementById('verifyTargetUser').textContent = `正在验证门锁权限 (ID: ${verifyUid.substring(0, 8)}...)`;
+            document.getElementById('unlockStatusText').textContent = '请输入6位开锁密码';
+
+            const iconCircle = document.getElementById('unlockIconCircle');
+            iconCircle.className = 'unlock-icon-circle locked';
+            iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
+            document.getElementById('verifyError').classList.remove('show');
+            document.querySelectorAll('.pin-digit').forEach(inp => { inp.value = ''; inp.classList.remove('filled'); });
+            setTimeout(() => document.getElementById('pin1')?.focus(), 300);
+        }
+
+        // PIN 输入处理（保持不变）
+        document.getElementById('pinInputGroup').addEventListener('input', function(e) {
+            const target = e.target;
+            if (target.classList.contains('pin-digit')) {
+                const val = target.value;
+                if (!/^\d$/.test(val) && val !== '') { target.value = ''; return; }
+                if (val) {
+                    target.classList.add('filled');
+                    const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
+                    const idx = allInputs.indexOf(target);
+                    if (idx < allInputs.length - 1) allInputs[idx + 1].focus();
+                } else {
+                    target.classList.remove('filled');
+                }
+            }
+        });
+
+        document.getElementById('pinInputGroup').addEventListener('keydown', function(e) {
+            if (e.key === 'Backspace') {
+                const target = e.target;
+                if (target.classList.contains('pin-digit') && target.value === '') {
+                    const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
+                    const idx = allInputs.indexOf(target);
+                    if (idx > 0) { allInputs[idx - 1].focus(); allInputs[idx - 1].value = ''; allInputs[idx - 1].classList.remove('filled'); }
+                }
+            }
+            if (e.key === 'Enter') verifyAndUnlock();
+        });
+
+        document.getElementById('pinInputGroup').addEventListener('paste', function(e) {
+            e.preventDefault();
+            const pasteData = (e.clipboardData || window.clipboardData).getData('text');
+            const digits = pasteData.replace(/\D/g, '').substring(0, 6);
+            const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
+            allInputs.forEach((inp, i) => {
+                if (i < digits.length) { inp.value = digits[i]; inp.classList.add('filled'); }
+                else { inp.value = ''; inp.classList.remove('filled'); }
             });
+            if (digits.length === 6) setTimeout(() => verifyAndUnlock(), 400);
+        });
 
-            // ==================== OneNET 连接测试 ====================
-            function testOneNETConnection() {
-                const session = getSession();
-                if (!session) return;
-                const user = getUserById(session.id);
-                if (!user) return;
-                const deviceId = document.getElementById('setDeviceId').value.trim() || user.deviceId;
-                const apiKey = document.getElementById('setApiKey').value.trim() || user.apiKey;
-                const resultEl = document.getElementById('testResult');
-                const btn = document.getElementById('testConnectionBtn');
+        async function verifyAndUnlock() {
+            const view = document.getElementById('verifyView');
+            const verifyUid = view.dataset.verifyUid;
+            const errorEl = document.getElementById('verifyError');
+            const btn = document.getElementById('verifyUnlockBtn');
+            const iconCircle = document.getElementById('unlockIconCircle');
+            const statusText = document.getElementById('unlockStatusText');
 
-                if (!deviceId || !apiKey) {
-                    resultEl.innerHTML =
-                        '<span style="color:#e54545;">❌ 请先填写设备ID和API密钥</span>';
-                    return;
-                }
+            errorEl.classList.remove('show');
+            if (!verifyUid) { showToast('无效验证会话', 'error'); return; }
 
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner" style="display:inline-block;width:16px;height:16px;"></span> 测试中...';
-                resultEl.innerHTML =
-                '<span style="color:#f5a623;">⏳ 正在连接OneNET平台...</span>';
-
-                // 模拟OneNET API调用
-                simulateOneNETRequest('GET', deviceId, apiKey)
-                    .then(response => {
-                        if (response.success) {
-                            resultEl.innerHTML =
-                                '<span style="color:#0d9e6c;">✅ 连接成功！设备在线，响应正常</span>';
-                            showToast('OneNET连接测试成功', 'success');
-                            // 自动保存
-                            updateUser(session.id, { deviceId, apiKey });
-                            addLog(session.id, 'OneNET连接测试成功', 'success');
-                        } else {
-                            resultEl.innerHTML =
-                                `<span style="color:#e54545;">❌ 连接失败：${response.error}</span>`;
-                            showToast('连接测试失败', 'error');
-                        }
-                    })
-                    .catch(err => {
-                        resultEl.innerHTML =
-                            '<span style="color:#e54545;">❌ 网络错误，无法连接OneNET平台</span>';
-                        showToast('网络错误', 'error');
-                    })
-                    .finally(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-plug"></i> 测试OneNET连接';
-                    });
+            const pinInput = Array.from(document.querySelectorAll('.pin-digit')).map(i => i.value).join('');
+            if (pinInput.length !== 6) {
+                errorEl.textContent = '请输入完整的6位密码';
+                errorEl.classList.add('show');
+                return;
             }
 
-            // 模拟OneNET API请求
-            function simulateOneNETRequest(method, deviceId, apiKey, command = null) {
-                return new Promise((resolve, reject) => {
-                    // 模拟网络延迟
-                    const delay = 800 + Math.random() * 1200;
-                    setTimeout(() => {
-                        // 模拟：如果设备ID和API密钥都非空且长度合理，则成功
-                        if (deviceId && apiKey && deviceId.length > 3 && apiKey.length > 5) {
-                            // 80%概率成功
-                            if (Math.random() < 0.85) {
-                                resolve({
-                                    success: true,
-                                    data: {
-                                        device_id: deviceId,
-                                        online: true,
-                                        last_seen: new Date().toISOString(),
-                                        command_status: command ? 'executed' : null,
-                                    },
-                                });
-                            } else {
-                                resolve({
-                                    success: false,
-                                    error: '设备离线或响应超时',
-                                });
-                            }
-                        } else {
-                            resolve({
-                                success: false,
-                                error: '设备ID或API密钥无效',
-                            });
-                        }
-                    }, delay);
-                });
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            // 从 Supabase 获取用户配置
+            const { data: profileData, error: profileError } = await supabase
+                .from('profiles')
+                .select('unlock_pin, device_id, api_key')
+                .eq('id', verifyUid)
+                .single();
+
+            if (profileError || !profileData) {
+                errorEl.textContent = '用户不存在或设备离线';
+                errorEl.classList.add('show');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                return;
             }
 
-            // 模拟发送开锁指令到OneNET
-            function sendUnlockCommandToOneNET(user) {
-                return new Promise((resolve, reject) => {
-                    if (!user.deviceId || !user.apiKey) {
-                        resolve({
-                            success: false,
-                            error: '设备未配置，请先绑定OneNET设备',
-                        });
-                        return;
-                    }
-                    // 模拟发送指令
-                    const delay = 600 + Math.random() * 1000;
-                    setTimeout(() => {
-                        if (Math.random() < 0.9) {
-                            resolve({
-                                success: true,
-                                message: '开锁指令已通过OneNET下发，硬件执行成功',
-                                timestamp: new Date().toISOString(),
-                            });
-                        } else {
-                            resolve({
-                                success: false,
-                                error: '硬件响应超时，请重试',
-                            });
-                        }
-                    }, delay);
-                });
-            }
-
-            // ==================== 验证视图 ====================
-            function initVerifyView() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const verifyUid = urlParams.get('verify');
-                const view = document.getElementById('verifyView');
-
-                if (!verifyUid) {
-                    document.getElementById('verifyTargetUser').textContent = '无效的二维码链接';
-                    document.getElementById('unlockStatusText').textContent = '缺少用户标识，请扫描正确的二维码';
-                    return;
-                }
-
-                const user = getUserById(verifyUid);
-                if (!user) {
-                    document.getElementById('verifyTargetUser').textContent = '用户不存在或已注销';
-                    document.getElementById('unlockStatusText').textContent = '该二维码对应的账号无效';
-                    return;
-                }
-
-                document.getElementById('verifyTargetUser').textContent =
-                    `正在为「${user.username}」的门锁进行验证`;
-                document.getElementById('unlockStatusText').textContent = '请输入6位开锁密码';
-                // 重置动画
-                const iconCircle = document.getElementById('unlockIconCircle');
+            if (pinInput !== profileData.unlock_pin) {
+                errorEl.textContent = '密码错误';
+                errorEl.classList.add('show');
                 iconCircle.className = 'unlock-icon-circle locked';
                 iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
-                document.getElementById('verifyError').classList.remove('show');
-                // 清空PIN输入
-                document.querySelectorAll('.pin-digit').forEach(inp => {
-                    inp.value = '';
-                    inp.classList.remove('filled', 'error');
-                });
-                // 聚焦第一个输入
-                setTimeout(() => {
-                    document.getElementById('pin1')?.focus();
-                }, 300);
-
-                // 存储当前验证的用户ID
-                view.dataset.verifyUid = verifyUid;
+                statusText.textContent = '密码错误，请重试';
+                addLog(verifyUid, '开锁密码验证失败', 'fail');
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                document.querySelectorAll('.pin-digit').forEach(inp => inp.value = '');
+                document.getElementById('pin1')?.focus();
+                return;
             }
 
-            // PIN输入自动跳转
-            document.getElementById('pinInputGroup').addEventListener('input', function(e) {
-                const target = e.target;
-                if (target.classList.contains('pin-digit')) {
-                    const val = target.value;
-                    // 只允许数字
-                    if (!/^\d$/.test(val) && val !== '') {
-                        target.value = '';
-                        return;
-                    }
-                    if (val) {
-                        target.classList.add('filled');
-                        // 跳转到下一个输入框
-                        const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
-                        const idx = allInputs.indexOf(target);
-                        if (idx < allInputs.length - 1) {
-                            allInputs[idx + 1].focus();
-                        }
-                    } else {
-                        target.classList.remove('filled');
-                    }
-                }
-            });
+            // 密码正确，模拟开锁
+            iconCircle.className = 'unlock-icon-circle unlocking';
+            iconCircle.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            statusText.textContent = '密码正确，正在开锁...';
 
-            document.getElementById('pinInputGroup').addEventListener('keydown', function(e) {
-                if (e.key === 'Backspace') {
-                    const target = e.target;
-                    if (target.classList.contains('pin-digit') && target.value === '') {
-                        const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
-                        const idx = allInputs.indexOf(target);
-                        if (idx > 0) {
-                            allInputs[idx - 1].focus();
-                            allInputs[idx - 1].value = '';
-                            allInputs[idx - 1].classList.remove('filled');
-                        }
-                    }
-                }
-                // 回车键提交
-                if (e.key === 'Enter') {
-                    verifyAndUnlock();
-                }
-            });
+            const deviceId = profileData.device_id;
+            const apiKey = profileData.api_key;
 
-            // 粘贴处理（支持粘贴6位密码）
-            document.getElementById('pinInputGroup').addEventListener('paste', function(e) {
-                e.preventDefault();
-                const pasteData = (e.clipboardData || window.clipboardData).getData('text');
-                const digits = pasteData.replace(/\D/g, '').substring(0, 6);
-                const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
-                for (let i = 0; i < allInputs.length; i++) {
-                    if (i < digits.length) {
-                        allInputs[i].value = digits[i];
-                        allInputs[i].classList.add('filled');
-                    } else {
-                        allInputs[i].value = '';
-                        allInputs[i].classList.remove('filled');
-                    }
-                }
-                if (digits.length === 6) {
-                    allInputs[5].focus();
-                    // 自动提交
-                    setTimeout(() => verifyAndUnlock(), 400);
-                }
-            });
-
-            function getPinInput() {
-                const allInputs = Array.from(document.querySelectorAll('.pin-digit'));
-                return allInputs.map(inp => inp.value).join('');
-            }
-
-            function verifyAndUnlock() {
-                const view = document.getElementById('verifyView');
-                const verifyUid = view.dataset.verifyUid;
-                const errorEl = document.getElementById('verifyError');
-                const btn = document.getElementById('verifyUnlockBtn');
-                const iconCircle = document.getElementById('unlockIconCircle');
-                const statusText = document.getElementById('unlockStatusText');
-
-                errorEl.classList.remove('show');
-
-                if (!verifyUid) {
-                    showToast('无效的验证会话', 'error');
-                    return;
-                }
-
-                const user = getUserById(verifyUid);
-                if (!user) {
-                    errorEl.textContent = '用户数据异常，请重新扫描二维码';
-                    errorEl.classList.add('show');
-                    return;
-                }
-
-                const pinInput = getPinInput();
-                if (pinInput.length !== 6) {
-                    errorEl.textContent = '请输入完整的6位密码';
-                    errorEl.classList.add('show');
-                    // 高亮空输入框
-                    document.querySelectorAll('.pin-digit').forEach(inp => {
-                        if (!inp.value) inp.classList.add('error');
-                        else inp.classList.remove('error');
-                    });
+            // 模拟 OneNET 指令
+            setTimeout(() => {
+                const success = !!(deviceId && apiKey);
+                btn.classList.remove('loading');
+                btn.disabled = false;
+                if (success) {
+                    iconCircle.className = 'unlock-icon-circle unlocked';
+                    iconCircle.innerHTML = '<i class="fas fa-unlock"></i>';
+                    statusText.textContent = '🔓 开锁成功！门已打开';
+                    addLog(verifyUid, '开锁成功（OneNET）', 'success');
                     setTimeout(() => {
-                        document.querySelectorAll('.pin-digit').forEach(inp => inp.classList
-                            .remove('error'));
-                    }, 1500);
-                    return;
-                }
-
-                // 验证密码
-                if (pinInput !== user.unlockPin) {
-                    errorEl.textContent = '密码错误，请重试';
-                    errorEl.classList.add('show');
-                    iconCircle.className = 'unlock-icon-circle locked';
-                    iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
-                    statusText.textContent = '密码错误，请重试';
-                    addLog(user.id, '开锁密码验证失败', 'fail');
-                    // 震动动画
-                    iconCircle.style.animation = 'none';
-                    iconCircle.offsetHeight;
-                    iconCircle.style.animation = 'shake 0.6s ease';
-                    // 清空输入
-                    setTimeout(() => {
-                        document.querySelectorAll('.pin-digit').forEach(inp => {
-                            inp.value = '';
-                            inp.classList.remove('filled', 'error');
-                        });
-                        document.getElementById('pin1')?.focus();
-                    }, 600);
-                    showToast('❌ 密码错误', 'error');
-                    return;
-                }
-
-                // 密码正确，开始开锁流程
-                errorEl.classList.remove('show');
-                btn.classList.add('loading');
-                btn.disabled = true;
-                iconCircle.className = 'unlock-icon-circle unlocking';
-                iconCircle.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-                statusText.textContent = '密码验证通过，正在开锁...';
-
-                // 通过OneNET发送开锁指令
-                sendUnlockCommandToOneNET(user)
-                    .then(result => {
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
-                        if (result.success) {
-                            // 开锁成功
-                            iconCircle.className = 'unlock-icon-circle unlocked';
-                            iconCircle.innerHTML = '<i class="fas fa-unlock"></i>';
-                            statusText.textContent = '🔓 开锁成功！门已打开';
-                            addLog(user.id, '开锁成功（OneNET指令执行成功）', 'success');
-                            showToast('🔓 开锁成功！', 'success');
-                            // 3秒后恢复锁定状态
-                            setTimeout(() => {
-                                iconCircle.className = 'unlock-icon-circle locked';
-                                iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
-                                statusText.textContent = '门已自动锁定，请重新验证';
-                                document.querySelectorAll('.pin-digit').forEach(inp => {
-                                    inp.value = '';
-                                    inp.classList.remove('filled');
-                                });
-                            }, 4000);
-                        } else {
-                            // 开锁失败
-                            iconCircle.className = 'unlock-icon-circle locked';
-                            iconCircle.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                            statusText.textContent = result.error || '开锁失败，请重试';
-                            addLog(user.id, '开锁失败：' + (result.error || '未知错误'), 'fail');
-                            showToast('❌ ' + (result.error || '开锁失败'), 'error');
-                            document.querySelectorAll('.pin-digit').forEach(inp => {
-                                inp.value = '';
-                                inp.classList.remove('filled');
-                            });
-                            setTimeout(() => {
-                                document.getElementById('pin1')?.focus();
-                            }, 500);
-                        }
-                    })
-                    .catch(err => {
-                        btn.classList.remove('loading');
-                        btn.disabled = false;
                         iconCircle.className = 'unlock-icon-circle locked';
-                        iconCircle.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
-                        statusText.textContent = '网络异常，请检查连接';
-                        addLog(user.id, '开锁异常：网络错误', 'fail');
-                        showToast('网络异常', 'error');
-                    });
-            }
-
-            function goToDashboardFromVerify() {
-                const session = getSession();
-                if (session) {
-                    switchView('dashboardView');
+                        iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
+                        statusText.textContent = '门已自动锁定';
+                        document.querySelectorAll('.pin-digit').forEach(inp => { inp.value = ''; inp.classList.remove('filled'); });
+                    }, 4000);
                 } else {
-                    switchView('loginView');
+                    iconCircle.className = 'unlock-icon-circle locked';
+                    iconCircle.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                    statusText.textContent = '设备未绑定，无法开锁';
+                    addLog(verifyUid, '开锁失败：设备未绑定', 'fail');
+                    document.querySelectorAll('.pin-digit').forEach(inp => { inp.value = ''; inp.classList.remove('filled'); });
                 }
-                // 清除URL参数
-                if (window.history && window.history.pushState) {
-                    window.history.pushState({}, '', window.location.pathname);
-                }
-            }
+            }, 1500);
+        }
 
-            // ==================== 全局暴露 ====================
-            window.switchView = switchView;
-            window.handleLogout = handleLogout;
-            window.verifyAndUnlock = verifyAndUnlock;
-            window.goToDashboardFromVerify = goToDashboardFromVerify;
-            window.simulateScan = simulateScan;
-            window.testOneNETConnection = testOneNETConnection;
+        function goToDashboardFromVerify() {
+            switchView('dashboardView');
+            window.history.pushState({}, '', window.location.pathname);
+        }
 
-            // ==================== 初始化 ====================
-            function boot() {
-                initDefaultData();
+        // ==================== 初始化启动 ====================
+        async function boot() {
+            const { data: { user } } = await supabase.auth.getUser();
+            const urlParams = new URLSearchParams(window.location.search);
+            const verifyUid = urlParams.get('verify');
 
-                // 检查URL参数，判断是否从二维码扫描进入
-                const urlParams = new URLSearchParams(window.location.search);
-                const verifyUid = urlParams.get('verify');
-
-                if (verifyUid) {
-                    // 从二维码扫描进入
-                    const user = getUserById(verifyUid);
-                    if (user) {
-                        switchView('verifyView');
-                    } else {
-                        switchView('loginView');
-                        showToast('无效的二维码', 'error');
-                    }
-                } else {
-                    // 检查是否有活跃会话
-                    const session = getSession();
-                    if (session) {
-                        const user = getUserById(session.id);
-                        if (user) {
-                            switchView('dashboardView');
-                        } else {
-                            clearSession();
-                            switchView('loginView');
-                        }
-                    } else {
-                        switchView('loginView');
-                    }
-                }
-            }
-
-            // 页面加载完成后启动
-            if (document.readyState === 'loading') {
-                document.addEventListener('DOMContentLoaded', boot);
+            if (verifyUid) {
+                switchView('verifyView');
+            } else if (user) {
+                switchView('dashboardView');
             } else {
-                boot();
+                switchView('loginView');
             }
+        }
 
-            // 监听浏览器后退/前进
-            window.addEventListener('popstate', function() {
-                const urlParams = new URLSearchParams(window.location.search);
-                const verifyUid = urlParams.get('verify');
-                if (verifyUid) {
-                    switchView('verifyView');
-                } else {
-                    const session = getSession();
-                    if (session) {
-                        switchView('dashboardView');
-                    } else {
-                        switchView('loginView');
-                    }
-                }
+        // 全局暴露
+        window.switchView = switchView;
+        window.handleLogout = handleLogout;
+        window.verifyAndUnlock = verifyAndUnlock;
+        window.goToDashboardFromVerify = goToDashboardFromVerify;
+        window.simulateScan = simulateScan;
+        window.testOneNETConnection = testOneNETConnection;
+
+        document.addEventListener('DOMContentLoaded', boot);
+
+        // 监听浏览器后退/前进
+        window.addEventListener('popstate', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('verify')) switchView('verifyView');
+            else supabase.auth.getUser().then(({ data: { user } }) => {
+                if (user) switchView('dashboardView');
+                else switchView('loginView');
             });
-
-            console.log('🔐 智能门锁管理平台已就绪');
-            console.log('   - OneNET IoT 集成接口已准备');
-            console.log('   - 演示账号：admin / admin123');
-            console.log('   - 开锁密码：888888');
-            console.log('   - 二维码扫描后进入验证页面');
-            console.log('   - 支持设备绑定与开锁指令下发');
-        })();
+        });
     </script>
 </body>
 </html>
