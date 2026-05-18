@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>智能门锁管理平台 - OneNET IoT</title>
+    <title>智能门锁管理平台 - Supabase版</title>
 
     <!-- Supabase SDK -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -57,7 +57,6 @@
             -webkit-font-smoothing: antialiased;
         }
 
-        /* 背景动态粒子 */
         .bg-particles {
             position: fixed;
             top: 0;
@@ -74,67 +73,20 @@
             background: rgba(26, 115, 232, 0.06);
             animation: floatUp 15s infinite ease-in;
         }
-        .bg-particle:nth-child(1) {
-            width: 200px;
-            height: 200px;
-            left: 5%;
-            animation-delay: 0s;
-            animation-duration: 18s;
-        }
-        .bg-particle:nth-child(2) {
-            width: 150px;
-            height: 150px;
-            left: 30%;
-            animation-delay: -4s;
-            animation-duration: 14s;
-        }
-        .bg-particle:nth-child(3) {
-            width: 180px;
-            height: 180px;
-            left: 55%;
-            animation-delay: -8s;
-            animation-duration: 20s;
-        }
-        .bg-particle:nth-child(4) {
-            width: 120px;
-            height: 120px;
-            left: 75%;
-            animation-delay: -12s;
-            animation-duration: 16s;
-        }
-        .bg-particle:nth-child(5) {
-            width: 160px;
-            height: 160px;
-            left: 90%;
-            animation-delay: -6s;
-            animation-duration: 22s;
-        }
-        .bg-particle:nth-child(6) {
-            width: 100px;
-            height: 100px;
-            left: 20%;
-            animation-delay: -10s;
-            animation-duration: 19s;
-        }
+        .bg-particle:nth-child(1) { width: 200px; height: 200px; left: 5%; animation-delay: 0s; animation-duration: 18s; }
+        .bg-particle:nth-child(2) { width: 150px; height: 150px; left: 30%; animation-delay: -4s; animation-duration: 14s; }
+        .bg-particle:nth-child(3) { width: 180px; height: 180px; left: 55%; animation-delay: -8s; animation-duration: 20s; }
+        .bg-particle:nth-child(4) { width: 120px; height: 120px; left: 75%; animation-delay: -12s; animation-duration: 16s; }
+        .bg-particle:nth-child(5) { width: 160px; height: 160px; left: 90%; animation-delay: -6s; animation-duration: 22s; }
+        .bg-particle:nth-child(6) { width: 100px; height: 100px; left: 20%; animation-delay: -10s; animation-duration: 19s; }
 
         @keyframes floatUp {
-            0% {
-                transform: translateY(105vh) scale(0.3);
-                opacity: 0;
-            }
-            10% {
-                opacity: 1;
-            }
-            90% {
-                opacity: 0.6;
-            }
-            100% {
-                transform: translateY(-20vh) scale(1.4);
-                opacity: 0;
-            }
+            0% { transform: translateY(105vh) scale(0.3); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 0.6; }
+            100% { transform: translateY(-20vh) scale(1.4); opacity: 0; }
         }
 
-        /* 主容器 */
         .app-container {
             position: relative;
             z-index: 1;
@@ -148,641 +100,174 @@
             min-height: 560px;
         }
 
-        /* 顶部装饰条 */
         .app-header-bar {
             height: 4px;
             background: linear-gradient(90deg, #1a73e8, #4a9af5, #1a73e8);
             background-size: 200% 100%;
             animation: shimmer 3s ease-in-out infinite;
         }
-        @keyframes shimmer {
-            0%,
-            100% {
-                background-position: 0% 50%;
-            }
-            50% {
-                background-position: 100% 50%;
-            }
-        }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
 
-        /* 内容区 */
-        .app-content {
-            padding: 28px 24px 24px;
-            position: relative;
-        }
+        .app-content { padding: 28px 24px 24px; position: relative; }
 
-        /* Logo */
-        .logo-area {
-            text-align: center;
-            margin-bottom: 24px;
-        }
+        .logo-area { text-align: center; margin-bottom: 24px; }
         .logo-icon {
-            width: 56px;
-            height: 56px;
+            width: 56px; height: 56px;
             background: linear-gradient(135deg, #1a73e8, #4a9af5);
             border-radius: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            font-size: 26px;
-            color: #fff;
+            font-size: 26px; color: #fff;
             box-shadow: 0 8px 24px rgba(26, 115, 232, 0.3);
             margin-bottom: 8px;
         }
-        .logo-title {
-            font-size: 20px;
-            font-weight: 700;
-            color: var(--text);
-            letter-spacing: -0.3px;
-        }
-        .logo-subtitle {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 2px;
-            letter-spacing: 0.5px;
-        }
+        .logo-title { font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: -0.3px; }
+        .logo-subtitle { font-size: 12px; color: var(--text-secondary); margin-top: 2px; letter-spacing: 0.5px; }
 
-        /* 表单 */
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 6px;
-            letter-spacing: 0.2px;
-        }
-        .form-input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .form-input-wrapper .input-icon {
-            position: absolute;
-            left: 14px;
-            color: var(--text-light);
-            font-size: 15px;
-            pointer-events: none;
-            z-index: 1;
-            transition: color var(--transition-fast);
-        }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; letter-spacing: 0.2px; }
+        .form-input-wrapper { position: relative; display: flex; align-items: center; }
+        .form-input-wrapper .input-icon { position: absolute; left: 14px; color: var(--text-light); font-size: 15px; pointer-events: none; z-index: 1; transition: color var(--transition-fast); }
         .form-input {
-            width: 100%;
-            padding: 12px 14px 12px 40px;
-            border: 2px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 15px;
-            color: var(--text);
-            background: #fafbfc;
-            transition: all var(--transition-fast);
-            outline: none;
-            font-family: inherit;
-            letter-spacing: 0.3px;
+            width: 100%; padding: 12px 14px 12px 40px;
+            border: 2px solid var(--border); border-radius: var(--radius);
+            font-size: 15px; color: var(--text); background: #fafbfc;
+            transition: all var(--transition-fast); outline: none; font-family: inherit; letter-spacing: 0.3px;
         }
-        .form-input:focus {
-            border-color: var(--primary);
-            background: #fff;
-            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.08);
-        }
-        .form-input:focus~.input-icon,
-        .form-input-wrapper:focus-within .input-icon {
-            color: var(--primary);
-        }
-        .form-input.error {
-            border-color: var(--danger);
-            background: #fff5f5;
-        }
-        .form-error-msg {
-            font-size: 11px;
-            color: var(--danger);
-            margin-top: 4px;
-            display: none;
-            letter-spacing: 0.3px;
-        }
-        .form-error-msg.show {
-            display: block;
-            animation: fadeIn 0.2s ease;
-        }
+        .form-input:focus { border-color: var(--primary); background: #fff; box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.08); }
+        .form-input:focus~.input-icon, .form-input-wrapper:focus-within .input-icon { color: var(--primary); }
+        .form-input.error { border-color: var(--danger); background: #fff5f5; }
+        .form-error-msg { font-size: 11px; color: var(--danger); margin-top: 4px; display: none; letter-spacing: 0.3px; }
+        .form-error-msg.show { display: block; animation: fadeIn 0.2s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
 
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-4px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* 按钮 */
         .btn {
-            width: 100%;
-            padding: 13px 20px;
-            border: none;
-            border-radius: var(--radius);
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-            letter-spacing: 0.4px;
-            position: relative;
-            overflow: hidden;
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
+            width: 100%; padding: 13px 20px; border: none; border-radius: var(--radius);
+            font-size: 15px; font-weight: 600; cursor: pointer;
+            transition: all var(--transition-fast); letter-spacing: 0.4px;
+            position: relative; overflow: hidden; font-family: inherit;
+            display: flex; align-items: center; justify-content: center; gap: 8px;
         }
-        .btn-primary {
-            background: linear-gradient(135deg, #1a73e8, #2563eb);
-            color: #fff;
-            box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35);
-        }
-        .btn-primary:hover {
-            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.45);
-            transform: translateY(-1px);
-        }
-        .btn-primary:active {
-            transform: scale(0.97);
-            box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3);
-        }
-        .btn-outline {
-            background: #fff;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-        .btn-outline:hover {
-            background: var(--primary-light);
-        }
-        .btn-danger {
-            background: #fff;
-            color: var(--danger);
-            border: 2px solid var(--danger);
-        }
-        .btn-danger:hover {
-            background: #fff5f5;
-        }
-        .btn-sm {
-            width: auto;
-            padding: 8px 16px;
-            font-size: 13px;
-            border-radius: var(--radius-sm);
-        }
-        .btn:disabled {
-            opacity: 0.55;
-            cursor: not-allowed;
-            pointer-events: none;
-            filter: grayscale(20%);
-        }
+        .btn-primary { background: linear-gradient(135deg, #1a73e8, #2563eb); color: #fff; box-shadow: 0 4px 14px rgba(26, 115, 232, 0.35); }
+        .btn-primary:hover { box-shadow: 0 6px 20px rgba(26, 115, 232, 0.45); transform: translateY(-1px); }
+        .btn-primary:active { transform: scale(0.97); box-shadow: 0 2px 8px rgba(26, 115, 232, 0.3); }
+        .btn-outline { background: #fff; color: var(--primary); border: 2px solid var(--primary); }
+        .btn-outline:hover { background: var(--primary-light); }
+        .btn-danger { background: #fff; color: var(--danger); border: 2px solid var(--danger); }
+        .btn-danger:hover { background: #fff5f5; }
+        .btn-sm { width: auto; padding: 8px 16px; font-size: 13px; border-radius: var(--radius-sm); }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; pointer-events: none; filter: grayscale(20%); }
         .btn .spinner {
-            display: none;
-            width: 18px;
-            height: 18px;
-            border: 2.5px solid rgba(255, 255, 255, 0.3);
-            border-top-color: #fff;
-            border-radius: 50%;
-            animation: spin 0.7s linear infinite;
+            display: none; width: 18px; height: 18px;
+            border: 2.5px solid rgba(255, 255, 255, 0.3); border-top-color: #fff;
+            border-radius: 50%; animation: spin 0.7s linear infinite;
         }
-        .btn.loading .spinner {
-            display: inline-block;
-        }
-        .btn.loading .btn-text {
-            display: none;
-        }
-        @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
-        }
+        .btn.loading .spinner { display: inline-block; }
+        .btn.loading .btn-text { display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* 链接文字 */
-        .link-text {
-            color: var(--primary);
-            cursor: pointer;
-            font-weight: 500;
-            transition: color var(--transition-fast);
-            text-decoration: none;
-            font-size: 13px;
-        }
-        .link-text:hover {
-            color: var(--primary-dark);
-            text-decoration: underline;
-        }
+        .link-text { color: var(--primary); cursor: pointer; font-weight: 500; transition: color var(--transition-fast); text-decoration: none; font-size: 13px; }
+        .link-text:hover { color: var(--primary-dark); text-decoration: underline; }
 
-        /* 卡片 */
-        .card {
-            background: #fafbfc;
-            border: 1px solid var(--border-light);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 14px;
-            transition: all var(--transition-fast);
-        }
-        .card-highlight {
-            border: 2px solid var(--primary);
-            background: var(--primary-light);
-            box-shadow: 0 0 0 6px rgba(26, 115, 232, 0.03);
-        }
+        .card { background: #fafbfc; border: 1px solid var(--border-light); border-radius: var(--radius); padding: 16px; margin-bottom: 14px; transition: all var(--transition-fast); }
+        .card-highlight { border: 2px solid var(--primary); background: var(--primary-light); box-shadow: 0 0 0 6px rgba(26, 115, 232, 0.03); }
 
-        /* 二维码容器 */
         .qr-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-            background: #fff;
-            border-radius: var(--radius-lg);
-            border: 2px dashed var(--border);
-            margin: 16px 0;
-            transition: all var(--transition);
+            display: flex; flex-direction: column; align-items: center; padding: 20px;
+            background: #fff; border-radius: var(--radius-lg); border: 2px dashed var(--border);
+            margin: 16px 0; transition: all var(--transition);
         }
-        .qr-container:hover {
-            border-color: var(--primary);
-            box-shadow: var(--shadow);
-        }
-        .qr-wrapper {
-            padding: 12px;
-            background: #fff;
-            border-radius: var(--radius);
-            box-shadow: var(--shadow-sm);
-            display: inline-block;
-            transition: all var(--transition);
-        }
-        .qr-wrapper canvas,
-        .qr-wrapper img {
-            display: block;
-            border-radius: 4px;
-        }
-        .qr-label {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 10px;
-            text-align: center;
-            letter-spacing: 0.3px;
-        }
-        .qr-uid {
-            font-weight: 700;
-            color: var(--primary);
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-            font-size: 13px;
-            word-break: break-all;
-        }
+        .qr-container:hover { border-color: var(--primary); box-shadow: var(--shadow); }
+        .qr-wrapper { padding: 12px; background: #fff; border-radius: var(--radius); box-shadow: var(--shadow-sm); display: inline-block; transition: all var(--transition); }
+        .qr-wrapper canvas, .qr-wrapper img { display: block; border-radius: 4px; }
+        .qr-label { font-size: 12px; color: var(--text-secondary); margin-top: 10px; text-align: center; letter-spacing: 0.3px; }
+        .qr-uid { font-weight: 700; color: var(--primary); font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; font-size: 13px; word-break: break-all; }
 
-        /* 状态徽标 */
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 5px 10px;
-            border-radius: 20px;
-            font-size: 11px;
-            font-weight: 600;
-            letter-spacing: 0.3px;
+            display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px;
+            border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.3px;
         }
-        .badge-success {
-            background: #e6f7ee;
-            color: #0d9e6c;
-        }
-        .badge-warning {
-            background: #fff8e6;
-            color: #b87a14;
-        }
-        .badge-danger {
-            background: #fde8e8;
-            color: #c53030;
-        }
-        .badge-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-        .badge-dot.green {
-            background: #0d9e6c;
-            animation: pulse-dot 2s infinite;
-        }
-        .badge-dot.orange {
-            background: #f5a623;
-            animation: pulse-dot 2s infinite;
-        }
-        .badge-dot.red {
-            background: #e54545;
-        }
-        @keyframes pulse-dot {
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 rgba(13, 158, 108, 0.5);
-            }
-            50% {
-                box-shadow: 0 0 0 8px rgba(13, 158, 108, 0);
-            }
-        }
+        .badge-success { background: #e6f7ee; color: #0d9e6c; }
+        .badge-warning { background: #fff8e6; color: #b87a14; }
+        .badge-danger { background: #fde8e8; color: #c53030; }
+        .badge-dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; }
+        .badge-dot.green { background: #0d9e6c; animation: pulse-dot 2s infinite; }
+        .badge-dot.orange { background: #f5a623; animation: pulse-dot 2s infinite; }
+        .badge-dot.red { background: #e54545; }
+        @keyframes pulse-dot { 0%, 100% { box-shadow: 0 0 0 0 rgba(13, 158, 108, 0.5); } 50% { box-shadow: 0 0 0 8px rgba(13, 158, 108, 0); } }
 
-        /* 页面切换动画 */
-        .view {
-            display: none;
-            animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .view.active {
-            display: block;
-        }
-        @keyframes slideIn {
-            from {
-                opacity: 0;
-                transform: translateY(12px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+        .view { display: none; animation: slideIn 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
+        .view.active { display: block; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-        /* Toast */
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            pointer-events: none;
-        }
+        .toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
         .toast {
-            padding: 12px 20px;
-            border-radius: var(--radius);
-            color: #fff;
-            font-weight: 600;
-            font-size: 14px;
-            letter-spacing: 0.3px;
-            box-shadow: var(--shadow-lg);
+            padding: 12px 20px; border-radius: var(--radius); color: #fff; font-weight: 600; font-size: 14px;
+            letter-spacing: 0.3px; box-shadow: var(--shadow-lg);
             animation: toastIn 0.4s cubic-bezier(0.4, 0, 0.2, 1), toastOut 0.3s ease 2.5s forwards;
-            pointer-events: auto;
-            text-align: center;
-            max-width: 380px;
+            pointer-events: auto; text-align: center; max-width: 380px;
         }
-        .toast-success {
-            background: #0d9e6c;
-        }
-        .toast-error {
-            background: #e54545;
-        }
-        .toast-info {
-            background: #1a73e8;
-        }
-        @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-        @keyframes toastOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-                transform: translateY(-20px);
-            }
-        }
+        .toast-success { background: #0d9e6c; } .toast-error { background: #e54545; } .toast-info { background: #1a73e8; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-20px); } }
 
-        /* 开锁动画 */
-        .unlock-animation {
-            text-align: center;
-            padding: 30px 20px;
-        }
+        .unlock-animation { text-align: center; padding: 30px 20px; }
         .unlock-icon-circle {
-            width: 90px;
-            height: 90px;
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 40px;
-            margin-bottom: 16px;
-            transition: all 0.5s ease;
+            width: 90px; height: 90px; border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            font-size: 40px; margin-bottom: 16px; transition: all 0.5s ease;
         }
-        .unlock-icon-circle.locked {
-            background: #fde8e8;
-            color: #e54545;
-            animation: shake 0.6s ease;
-        }
-        .unlock-icon-circle.unlocking {
-            background: #fff8e6;
-            color: #f5a623;
-            animation: pulse 1s infinite;
-        }
-        .unlock-icon-circle.unlocked {
-            background: #e6f7ee;
-            color: #0d9e6c;
-            animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        @keyframes shake {
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-            25% {
-                transform: translateX(-8px);
-            }
-            50% {
-                transform: translateX(8px);
-            }
-            75% {
-                transform: translateX(-5px);
-            }
-        }
-        @keyframes pulse {
-            0%,
-            100% {
-                transform: scale(1);
-            }
-            50% {
-                transform: scale(1.08);
-            }
-        }
-        @keyframes bounceIn {
-            0% {
-                transform: scale(0.3);
-                opacity: 0;
-            }
-            50% {
-                transform: scale(1.08);
-            }
-            70% {
-                transform: scale(0.95);
-            }
-            100% {
-                transform: scale(1);
-                opacity: 1;
-            }
-        }
+        .unlock-icon-circle.locked { background: #fde8e8; color: #e54545; animation: shake 0.6s ease; }
+        .unlock-icon-circle.unlocking { background: #fff8e6; color: #f5a623; animation: pulse 1s infinite; }
+        .unlock-icon-circle.unlocked { background: #e6f7ee; color: #0d9e6c; animation: bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 50% { transform: translateX(8px); } 75% { transform: translateX(-5px); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
+        @keyframes bounceIn { 0% { transform: scale(0.3); opacity: 0; } 50% { transform: scale(1.08); } 70% { transform: scale(0.95); } 100% { transform: scale(1); opacity: 1; } }
 
-        /* 日志列表 */
-        .log-list {
-            list-style: none;
-            max-height: 200px;
-            overflow-y: auto;
-            font-size: 12px;
-        }
-        .log-list li {
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--border-light);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 8px;
-            letter-spacing: 0.2px;
-        }
-        .log-list li:last-child {
-            border-bottom: none;
-        }
-        .log-time {
-            color: var(--text-light);
-            font-size: 10px;
-            white-space: nowrap;
-        }
-        .log-status {
-            font-weight: 600;
-            font-size: 11px;
-        }
-        .log-status.success {
-            color: #0d9e6c;
-        }
-        .log-status.fail {
-            color: #e54545;
-        }
+        .log-list { list-style: none; max-height: 200px; overflow-y: auto; font-size: 12px; }
+        .log-list li { padding: 8px 10px; border-bottom: 1px solid var(--border-light); display: flex; justify-content: space-between; align-items: center; gap: 8px; letter-spacing: 0.2px; }
+        .log-list li:last-child { border-bottom: none; }
+        .log-time { color: var(--text-light); font-size: 10px; white-space: nowrap; }
 
-        /* 响应式 */
-        @media (max-width: 480px) {
-            .app-container {
-                border-radius: var(--radius-lg);
-                min-height: auto;
-            }
-            .app-content {
-                padding: 20px 16px 18px;
-            }
-            .logo-icon {
-                width: 44px;
-                height: 44px;
-                font-size: 20px;
-                border-radius: 12px;
-            }
-            .logo-title {
-                font-size: 18px;
-            }
-            .form-input {
-                padding: 10px 12px 10px 36px;
-                font-size: 14px;
-            }
-            .btn {
-                padding: 11px 16px;
-                font-size: 14px;
-            }
-            .qr-container {
-                padding: 14px;
-            }
-        }
-
-        /* 自定义滚动条 */
-        ::-webkit-scrollbar {
-            width: 4px;
-        }
-        ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #d1d5db;
-            border-radius: 10px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #b0b7c3;
-        }
-
-        /* 密码输入组 */
-        .pin-input-group {
-            display: flex;
-            gap: 8px;
-            justify-content: center;
-            margin: 8px 0;
-        }
+        .pin-input-group { display: flex; gap: 8px; justify-content: center; margin: 8px 0; }
         .pin-input-group input {
-            width: 44px;
-            height: 52px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 700;
-            border: 2px solid var(--border);
-            border-radius: var(--radius-sm);
-            background: #fafbfc;
-            transition: all var(--transition-fast);
-            outline: none;
-            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace;
-            letter-spacing: 2px;
+            width: 44px; height: 52px; text-align: center; font-size: 22px; font-weight: 700;
+            border: 2px solid var(--border); border-radius: var(--radius-sm); background: #fafbfc;
+            transition: all var(--transition-fast); outline: none;
+            font-family: 'SF Mono', 'Consolas', 'Monaco', monospace; letter-spacing: 2px;
         }
-        .pin-input-group input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.08);
-            background: #fff;
-        }
-        .pin-input-group input.filled {
-            border-color: #93c5fd;
-            background: #fff;
-        }
+        .pin-input-group input:focus { border-color: var(--primary); box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.08); background: #fff; }
+        .pin-input-group input.filled { border-color: #93c5fd; background: #fff; }
 
-        /* 分割线 */
-        .divider {
-            border: none;
-            border-top: 1px solid var(--border-light);
-            margin: 18px 0;
+        .divider-text { display: flex; align-items: center; gap: 10px; color: var(--text-light); font-size: 11px; letter-spacing: 0.5px; margin: 16px 0; }
+        .divider-text::before, .divider-text::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        @media (max-width: 480px) {
+            .app-container { border-radius: var(--radius-lg); min-height: auto; }
+            .app-content { padding: 20px 16px 18px; }
+            .logo-icon { width: 44px; height: 44px; font-size: 20px; border-radius: 12px; }
+            .logo-title { font-size: 18px; }
+            .form-input { padding: 10px 12px 10px 36px; font-size: 14px; }
+            .btn { padding: 11px 16px; font-size: 14px; }
+            .qr-container { padding: 14px; }
         }
-        .divider-text {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--text-light);
-            font-size: 11px;
-            letter-spacing: 0.5px;
-            margin: 16px 0;
-        }
-        .divider-text::before,
-        .divider-text::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: var(--border);
-        }
+        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; } ::-webkit-scrollbar-thumb:hover { background: #b0b7c3; }
     </style>
 </head>
 <body>
-
-    <!-- 背景粒子 -->
     <div class="bg-particles">
-        <div class="bg-particle"></div>
-        <div class="bg-particle"></div>
-        <div class="bg-particle"></div>
-        <div class="bg-particle"></div>
-        <div class="bg-particle"></div>
-        <div class="bg-particle"></div>
+        <div class="bg-particle"></div><div class="bg-particle"></div><div class="bg-particle"></div>
+        <div class="bg-particle"></div><div class="bg-particle"></div><div class="bg-particle"></div>
     </div>
-
-    <!-- Toast 容器 -->
     <div class="toast-container" id="toastContainer"></div>
 
-    <!-- 主应用容器 -->
     <div class="app-container" id="appContainer">
         <div class="app-header-bar"></div>
         <div class="app-content">
 
-            <!-- ==================== 登录视图 ==================== -->
+            <!-- 登录视图 -->
             <div class="view active" id="loginView">
                 <div class="logo-area">
                     <div class="logo-icon"><i class="fas fa-lock"></i></div>
@@ -816,7 +301,7 @@
                 </button>
             </div>
 
-            <!-- ==================== 注册视图 ==================== -->
+            <!-- 注册视图 -->
             <div class="view" id="registerView">
                 <div class="logo-area">
                     <div class="logo-icon"><i class="fas fa-user-plus"></i></div>
@@ -871,36 +356,24 @@
                 </button>
             </div>
 
-            <!-- ==================== 仪表盘视图 ==================== -->
+            <!-- 仪表盘视图 -->
             <div class="view" id="dashboardView">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
                     <div>
-                        <h2 style="font-size:18px;color:var(--text);margin:0;">
-                            <i class="fas fa-tachometer-alt" style="color:var(--primary);"></i> 控制台
-                        </h2>
+                        <h2 style="font-size:18px;color:var(--text);margin:0;"><i class="fas fa-tachometer-alt" style="color:var(--primary);"></i> 控制台</h2>
                         <span style="font-size:12px;color:var(--text-secondary);" id="dashWelcome">欢迎回来</span>
                     </div>
-                    <button class="btn btn-sm btn-outline" onclick="handleLogout()" title="退出登录">
-                        <i class="fas fa-sign-out-alt"></i>
-                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="handleLogout()" title="退出登录"><i class="fas fa-sign-out-alt"></i></button>
                 </div>
 
-                <!-- 设备状态卡片 -->
                 <div class="card" id="deviceStatusCard">
                     <div style="display:flex;justify-content:space-between;align-items:center;">
-                        <span style="font-weight:600;font-size:14px;">
-                            <i class="fas fa-microchip"></i> 设备状态
-                        </span>
-                        <span class="badge badge-warning" id="deviceBadge">
-                            <span class="badge-dot orange"></span> 未绑定
-                        </span>
+                        <span style="font-weight:600;font-size:14px;"><i class="fas fa-microchip"></i> 设备状态</span>
+                        <span class="badge badge-warning" id="deviceBadge"><span class="badge-dot orange"></span> 未绑定</span>
                     </div>
-                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="deviceInfoText">
-                        请在设置中绑定OneNET设备
-                    </div>
+                    <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;" id="deviceInfoText">请在设置中绑定OneNET设备</div>
                 </div>
 
-                <!-- 二维码区域 -->
                 <div class="qr-container" id="qrContainer">
                     <div class="qr-wrapper" id="qrCodeWrapper"></div>
                     <div class="qr-label">
@@ -910,98 +383,59 @@
                     </div>
                 </div>
 
-                <!-- 快捷操作 -->
                 <div style="display:flex;gap:10px;flex-wrap:wrap;">
-                    <button class="btn btn-primary btn-sm" onclick="simulateScan()" style="flex:1;">
-                        <i class="fas fa-qrcode"></i> 模拟扫码开锁
-                    </button>
-                    <button class="btn btn-outline btn-sm" onclick="switchView('settingsView')" style="flex:1;">
-                        <i class="fas fa-cog"></i> 设备设置
-                    </button>
+                    <button class="btn btn-primary btn-sm" onclick="simulateScan()" style="flex:1;"><i class="fas fa-qrcode"></i> 模拟扫码开锁</button>
+                    <button class="btn btn-outline btn-sm" onclick="switchView('settingsView')" style="flex:1;"><i class="fas fa-cog"></i> 设备设置</button>
                 </div>
 
-                <!-- 最近开锁记录 -->
                 <div class="card" style="margin-top:14px;">
-                    <div style="font-weight:600;font-size:13px;margin-bottom:8px;">
-                        <i class="fas fa-history"></i> 最近开锁记录
-                    </div>
-                    <ul class="log-list" id="logList">
-                        <li style="color:var(--text-light);text-align:center;">暂无记录</li>
-                    </ul>
+                    <div style="font-weight:600;font-size:13px;margin-bottom:8px;"><i class="fas fa-history"></i> 最近开锁记录</div>
+                    <ul class="log-list" id="logList"><li style="color:var(--text-light);text-align:center;">暂无记录</li></ul>
                 </div>
             </div>
 
-            <!-- ==================== 设置视图 ==================== -->
+            <!-- 设置视图 -->
             <div class="view" id="settingsView">
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
-                    <button class="btn btn-sm btn-outline" onclick="switchView('dashboardView')" style="width:auto;">
-                        <i class="fas fa-arrow-left"></i>
-                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="switchView('dashboardView')" style="width:auto;"><i class="fas fa-arrow-left"></i></button>
                     <h2 style="font-size:16px;color:var(--text);margin:0;">⚙️ OneNET 设备绑定</h2>
                 </div>
                 <form id="settingsForm" autocomplete="off">
                     <div class="form-group">
                         <label class="form-label">OneNET 产品ID</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-box input-icon"></i>
-                            <input type="text" class="form-input" id="setProductId" placeholder="例如：123456">
-                        </div>
+                        <div class="form-input-wrapper"><i class="fas fa-box input-icon"></i><input type="text" class="form-input" id="setProductId" placeholder="例如：123456"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">OneNET 设备ID</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-microchip input-icon"></i>
-                            <input type="text" class="form-input" id="setDeviceId" placeholder="例如：987654321">
-                        </div>
+                        <div class="form-input-wrapper"><i class="fas fa-microchip input-icon"></i><input type="text" class="form-input" id="setDeviceId" placeholder="例如：987654321"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">API 密钥 (Master Key)</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-key input-icon"></i>
-                            <input type="text" class="form-input" id="setApiKey" placeholder="OneNET API Key">
-                        </div>
+                        <div class="form-input-wrapper"><i class="fas fa-key input-icon"></i><input type="text" class="form-input" id="setApiKey" placeholder="OneNET API Key"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">🔐 修改开锁密码（6位数字）</label>
-                        <div class="form-input-wrapper">
-                            <i class="fas fa-shield-alt input-icon"></i>
-                            <input type="text" class="form-input" id="setUnlockPin" placeholder="留空则不修改" maxlength="6" pattern="[0-9]{6}" inputmode="numeric">
-                        </div>
+                        <div class="form-input-wrapper"><i class="fas fa-shield-alt input-icon"></i><input type="text" class="form-input" id="setUnlockPin" placeholder="留空则不修改" maxlength="6" pattern="[0-9]{6}" inputmode="numeric"></div>
                     </div>
-                    <button type="submit" class="btn btn-primary" id="saveSettingsBtn">
-                        <span class="btn-text">💾 保存设置</span>
-                        <span class="spinner"></span>
-                    </button>
+                    <button type="submit" class="btn btn-primary" id="saveSettingsBtn"><span class="btn-text">💾 保存设置</span><span class="spinner"></span></button>
                 </form>
-                <button class="btn btn-outline" style="margin-top:10px;" id="testConnectionBtn" onclick="testOneNETConnection()">
-                    <i class="fas fa-plug"></i> 测试OneNET连接
-                </button>
+                <button class="btn btn-outline" style="margin-top:10px;" id="testConnectionBtn" onclick="testOneNETConnection()"><i class="fas fa-plug"></i> 测试OneNET连接</button>
                 <div id="testResult" style="margin-top:8px;font-size:12px;text-align:center;"></div>
             </div>
 
-            <!-- ==================== 开锁验证视图 ==================== -->
+            <!-- 验证视图 -->
             <div class="view" id="verifyView">
                 <div style="text-align:center;margin-bottom:16px;">
-                    <div class="logo-icon" style="background:linear-gradient(135deg,#0d9e6c,#10b981);">
-                        <i class="fas fa-door-open"></i>
-                    </div>
+                    <div class="logo-icon" style="background:linear-gradient(135deg,#0d9e6c,#10b981);"><i class="fas fa-door-open"></i></div>
                     <h2 style="font-size:17px;color:var(--text);margin-top:8px;">身份验证</h2>
-                    <p style="font-size:12px;color:var(--text-secondary);" id="verifyTargetUser">
-                        正在验证开门权限...
-                    </p>
+                    <p style="font-size:12px;color:var(--text-secondary);" id="verifyTargetUser">正在验证开门权限...</p>
                 </div>
                 <div class="unlock-animation" id="unlockAnimArea">
-                    <div class="unlock-icon-circle locked" id="unlockIconCircle">
-                        <i class="fas fa-lock"></i>
-                    </div>
-                    <p style="font-size:13px;color:var(--text-secondary);" id="unlockStatusText">
-                        请输入6位开锁密码
-                    </p>
+                    <div class="unlock-icon-circle locked" id="unlockIconCircle"><i class="fas fa-lock"></i></div>
+                    <p style="font-size:13px;color:var(--text-secondary);" id="unlockStatusText">请输入6位开锁密码</p>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="text-align:center;display:block;">
-                        🔐 开锁密码
-                    </label>
+                    <label class="form-label" style="text-align:center;display:block;">🔐 开锁密码</label>
                     <div class="pin-input-group" id="pinInputGroup">
                         <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="pin-digit" id="pin1">
                         <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]" class="pin-digit" id="pin2">
@@ -1016,24 +450,19 @@
                     <span class="btn-text"><i class="fas fa-unlock"></i> 验证并开锁</span>
                     <span class="spinner"></span>
                 </button>
-                <button class="btn btn-outline" style="margin-top:8px;" onclick="goToDashboardFromVerify()">
-                    <i class="fas fa-home"></i> 返回首页
-                </button>
-                <p style="text-align:center;margin-top:10px;font-size:10px;color:var(--text-light);">
-                    提示：密码为主人预设的6位数字开锁密码
-                </p>
+                <button class="btn btn-outline" style="margin-top:8px;" onclick="goToDashboardFromVerify()"><i class="fas fa-home"></i> 返回首页</button>
+                <p style="text-align:center;margin-top:10px;font-size:10px;color:var(--text-light);">提示：密码为主人预设的6位数字开锁密码</p>
             </div>
-
-        </div><!-- .app-content -->
-    </div><!-- .app-container -->
+        </div>
+    </div>
 
     <script>
-        // ==================== Supabase 初始化 ====================
-        const SUPABASE_URL = 'https://khngdzstzwyeamehmmqt.supabase.co'; // 基础域名
+        // ==================== 全局唯一 Supabase 初始化 ====================
+        const SUPABASE_URL = 'https://khngdzstzwyeamehmmqt.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_am1XRk1u-C6Z5jXckYfr1w_ILu1-McA';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ==================== Toast ====================
+        // ==================== Toast 提示 ====================
         function showToast(message, type = 'info') {
             const container = document.getElementById('toastContainer');
             const toast = document.createElement('div');
@@ -1055,37 +484,16 @@
             else if (viewId === 'verifyView') initVerifyView();
         }
 
-        // ==================== 获取当前用户的完整资料 ====================
-        async function getCurrentProfile() {
-            const { data: { user } } = await supabase.auth.getUser();
-            if (!user) return null;
-
-            const { data, error } = await supabase
-                .from('profiles')
-                .select('*')
-                .eq('id', user.id)
-                .single();
-
-            if (error || !data) return null;
-            return {
-                id: user.id,
-                username: user.email.split('@')[0],
-                unlockPin: data.unlock_pin,
-                deviceId: data.device_id,
-                productId: data.product_id,
-                apiKey: data.api_key,
-                createdAt: data.created_at,
-            };
-        }
-
-        // ==================== 日志（依然存在 localStorage） ====================
+        // ==================== 日志存储（兼容隐私模式） ====================
         function addLog(uid, message, status) {
             try {
                 const data = localStorage.getItem('smartlock_logs');
                 const allLogs = data ? JSON.parse(data) : [];
                 allLogs.push({ uid, message, status, time: new Date().toISOString() });
                 localStorage.setItem('smartlock_logs', JSON.stringify(allLogs.slice(-500)));
-            } catch (e) {}
+            } catch (e) {
+                // 隐私模式下 localStorage 可能不可用，忽略
+            }
         }
 
         function getLogs(uid) {
@@ -1202,7 +610,7 @@
                 }]);
 
             if (profileError) {
-                showToast('用户信息保存失败: ' + profileError.message, 'error');
+                showToast('用户信息保存失败，请确认邮箱验证已关闭或重试', 'error');
                 btn.classList.remove('loading');
                 btn.disabled = false;
                 return;
@@ -1216,7 +624,30 @@
             switchView('loginView');
         });
 
-        // ==================== 仪表盘初始化 ====================
+        // ==================== 获取当前用户资料 ====================
+        async function getCurrentProfile() {
+            const { data: { user } } = await supabase.auth.getUser();
+            if (!user) return null;
+
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', user.id)
+                .single();
+
+            if (error || !data) return null;
+            return {
+                id: user.id,
+                username: user.email.split('@')[0],
+                unlockPin: data.unlock_pin,
+                deviceId: data.device_id,
+                productId: data.product_id,
+                apiKey: data.api_key,
+                createdAt: data.created_at,
+            };
+        }
+
+        // ==================== 仪表盘 ====================
         async function initDashboard() {
             const profile = await getCurrentProfile();
             if (!profile) {
@@ -1228,7 +659,6 @@
             document.getElementById('dashWelcome').textContent = `欢迎，${profile.username}`;
             document.getElementById('qrUidDisplay').textContent = profile.id;
 
-            // 生成二维码（包含用户 UUID）
             const qrWrapper = document.getElementById('qrCodeWrapper');
             qrWrapper.innerHTML = '';
             const verifyUrl = window.location.origin + window.location.pathname + '?verify=' + profile.id;
@@ -1269,9 +699,7 @@
 
         function simulateScan() {
             const qrUid = document.getElementById('qrUidDisplay').textContent;
-            if (qrUid) {
-                window.location.href = window.location.pathname + '?verify=' + qrUid;
-            }
+            if (qrUid) window.location.href = window.location.pathname + '?verify=' + qrUid;
         }
 
         async function handleLogout() {
@@ -1315,9 +743,8 @@
 
             const { error } = await supabase.from('profiles').update(updates).eq('id', user.id);
 
-            if (error) {
-                showToast('保存失败: ' + error.message, 'error');
-            } else {
+            if (error) showToast('保存失败: ' + error.message, 'error');
+            else {
                 showToast('✅ 设置已保存', 'success');
                 document.getElementById('setUnlockPin').value = '';
             }
@@ -1325,7 +752,6 @@
             btn.disabled = false;
         });
 
-        // ==================== OneNET 连接测试（模拟） ====================
         function testOneNETConnection() {
             const resultEl = document.getElementById('testResult');
             const btn = document.getElementById('testConnectionBtn');
@@ -1354,7 +780,7 @@
             }, 1500);
         }
 
-        // ==================== 验证与开锁 ====================
+        // ==================== 开锁验证 ====================
         function initVerifyView() {
             const urlParams = new URLSearchParams(window.location.search);
             const verifyUid = urlParams.get('verify');
@@ -1367,10 +793,8 @@
                 return;
             }
 
-            // 加载用户名称（从 Supabase profiles + auth 联表？暂时只显示 ID）
             document.getElementById('verifyTargetUser').textContent = `正在验证门锁权限 (ID: ${verifyUid.substring(0, 8)}...)`;
             document.getElementById('unlockStatusText').textContent = '请输入6位开锁密码';
-
             const iconCircle = document.getElementById('unlockIconCircle');
             iconCircle.className = 'unlock-icon-circle locked';
             iconCircle.innerHTML = '<i class="fas fa-lock"></i>';
@@ -1379,7 +803,7 @@
             setTimeout(() => document.getElementById('pin1')?.focus(), 300);
         }
 
-        // PIN 输入处理（保持不变）
+        // PIN 输入处理
         document.getElementById('pinInputGroup').addEventListener('input', function(e) {
             const target = e.target;
             if (target.classList.contains('pin-digit')) {
@@ -1470,7 +894,7 @@
                 return;
             }
 
-            // 密码正确，模拟开锁
+            // 密码正确
             iconCircle.className = 'unlock-icon-circle unlocking';
             iconCircle.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
             statusText.textContent = '密码正确，正在开锁...';
@@ -1509,7 +933,7 @@
             window.history.pushState({}, '', window.location.pathname);
         }
 
-        // ==================== 初始化启动 ====================
+        // ==================== 启动 ====================
         async function boot() {
             const { data: { user } } = await supabase.auth.getUser();
             const urlParams = new URLSearchParams(window.location.search);
@@ -1534,7 +958,6 @@
 
         document.addEventListener('DOMContentLoaded', boot);
 
-        // 监听浏览器后退/前进
         window.addEventListener('popstate', function() {
             const urlParams = new URLSearchParams(window.location.search);
             if (urlParams.get('verify')) switchView('verifyView');
